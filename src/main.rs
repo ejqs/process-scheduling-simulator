@@ -18,7 +18,7 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     eframe::run_native(
-        "eframe template",
+        "Process Scheduling Simulator",
         native_options,
         Box::new(|cc| Ok(Box::new(process_scheduling_simulator::TemplateApp::new(cc)))),
     )

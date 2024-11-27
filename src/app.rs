@@ -1,20 +1,33 @@
+use egui_dropdown::DropDownBox;
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     // Example stuff:
-    label: String,
+    jobcount: u16,
 
     #[serde(skip)] // This how you opt-out of serialization of a field
     value: f32,
+    items: Vec<String>,
+    buf: String,
+    viewport_open: bool,
 }
 
 impl Default for TemplateApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            label: "Hello World!".to_owned(),
+            jobcount: 2,
             value: 2.7,
+            items: vec![
+                "First Come First Serve (FCFS)".into(),
+                "Shortest Job Next (SJN)".into(),
+                "Shortest Remaining Time (SRN)".into(),
+                "Round Robin".into(),
+            ],
+            buf: String::new(),
+            viewport_open: false,
         }
     }
 }
@@ -67,32 +80,67 @@ impl eframe::App for TemplateApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("eframe template");
+            ui.heading("Process Scheduling Simulator");
 
             ui.horizontal(|ui| {
-                ui.label("Write something: ");
-                ui.text_edit_singleline(&mut self.label);
+                ui.label("Number of Jobs: ");
+                ui.add(egui::DragValue::new(&mut self.jobcount).range(0..=u16::MAX));
             });
 
-            ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
-                self.value += 1.0;
-            }
+            ui.horizontal(|ui| {
+                ui.label("Process Flags");
+                // ui.text_edit_singleline(&mut self.label);
+                ui.add(
+                    DropDownBox::from_iter(
+                        &self.items,
+                        "test_dropbox",
+                        &mut self.buf,
+                        |ui, text| ui.selectable_label(false, text),
+                    )
+                    // choose whether to filter the box items based on what is in the text edit already
+                    // default is true when this is not used
+                    .filter_by_input(false)
+                    // choose whether to select all text in the text edit when it gets focused
+                    // default is false when this is not used
+                    .select_on_focus(true)
+                    // passes through the desired width to the text edit
+                    // default is None internally, so TextEdit does whatever its default implements
+                    .desired_width(250.0),
+                );
 
-            ui.separator();
+                if ui.button("OK").clicked() {
+                    self.viewport_open = true;
+                }
 
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/main/",
-                "Source code."
-            ));
-
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
+                if self.viewport_open {
+                    let ctx_clone = ctx.clone();
+                    ctx.show_viewport_deferred(
+                        egui::ViewportId::from_hash_of(1),
+                        egui::ViewportBuilder::default(),
+                        move |_, _| {
+                            // Define the UI for the new viewport here
+                            egui::CentralPanel::default().show(&ctx_clone, |ui| {
+                                job_builder_screen(ui);
+                            });
+                        },
+                    );
+                }
             });
         });
     }
 }
+
+fn job_builder_screen(ui: &mut egui::Ui) {
+    ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+        powered_by_egui_and_eframe(ui);
+        egui::warn_if_debug_build(ui);
+    });
+}
+
+fn process_scheduler() {
+
+}
+
 
 fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
