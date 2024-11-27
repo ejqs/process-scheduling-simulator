@@ -20,7 +20,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "Process Scheduling Simulator",
         native_options,
-        Box::new(|cc| Ok(Box::new(process_scheduling_simulator::TemplateApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(process_scheduling_simulator::App::new(cc)))),
     )
 }
 
