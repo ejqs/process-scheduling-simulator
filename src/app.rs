@@ -111,7 +111,13 @@ impl eframe::App for App {
             });
 
             ui.horizontal(|ui| {
-                if ui.button("OK").clicked() {
+                if ui
+                    .add(
+                        egui::Button::new("Open Simulator")
+                            .fill(egui::Color32::from_rgb(100, 149, 237)),
+                    )
+                    .clicked()
+                {
                     if self.viewport_open == true {
                         self.viewport_open = false
                     } else {
@@ -120,20 +126,19 @@ impl eframe::App for App {
                     println!("{:?}", self.buf);
                     println!("{}", self.job_count);
                 }
+                if ui
+                    .add(
+                        egui::Button::new("Randomize Details")
+                            .fill(egui::Color32::from_rgb(100, 149, 237)),
+                    )
+                    .clicked()
+                {
+                    self.jobs = randomize_jobs(self.jobs.clone())
+                }
 
                 // TODO: Allow for User Closing
                 if self.viewport_open {
-                    let ctx_clone = ctx.clone();
-                    ctx.show_viewport_deferred(
-                        egui::ViewportId::from_hash_of(1),
-                        egui::ViewportBuilder::default(),
-                        move |_, _| {
-                            // Define the UI for the new viewport here
-                            egui::CentralPanel::default().show(&ctx_clone, |ui| {
-                                job_builder_screen(ui);
-                            });
-                        },
-                    );
+                    spawn_new_window(ctx, self.buf.clone(), self.jobs.clone());
                 }
             });
 
@@ -141,7 +146,7 @@ impl eframe::App for App {
                 self.jobs = job_builder(self.job_count);
             }
             ui.horizontal(|ui| {
-                ui.label("Job Details");
+                ui.label("Job Details | CPU Cycle | Arrival Time");
             });
 
             for job in &mut self.jobs {
@@ -155,9 +160,24 @@ impl eframe::App for App {
     }
 }
 
-fn job_list_builder(ui: &mut egui::Ui, job_count: u32) {}
+fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
+    let ctx_clone = ctx.clone();
+
+    ctx.show_viewport_deferred(
+        egui::ViewportId::from_hash_of(1),
+        egui::ViewportBuilder::default(),
+        move |_, _| {
+            // Define the UI for the new viewport here
+            egui::CentralPanel::default().show(&ctx_clone, |ui| {
+                job_builder_screen(ui, algorithm.clone(), jobs.clone());
+            });
+        },
+    );
+}
 
 fn job_builder_screen(ui: &mut egui::Ui) {
+fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
+    let (scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
         powered_by_egui_and_eframe(ui);
         egui::warn_if_debug_build(ui);
