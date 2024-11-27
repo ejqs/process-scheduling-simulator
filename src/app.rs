@@ -32,6 +32,8 @@ impl Default for TemplateApp {
     }
 }
 
+
+
 impl TemplateApp {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
@@ -112,6 +114,7 @@ impl eframe::App for TemplateApp {
                     self.viewport_open = true;
                 }
 
+                // TODO: Allow for User Closing
                 if self.viewport_open {
                     let ctx_clone = ctx.clone();
                     ctx.show_viewport_deferred(
@@ -125,6 +128,7 @@ impl eframe::App for TemplateApp {
                         },
                     );
                 }
+
             });
         });
     }
@@ -137,9 +141,9 @@ fn job_builder_screen(ui: &mut egui::Ui) {
     });
 }
 
-fn process_scheduler() {
+// fn process_scheduler() {
 
-}
+// }
 
 
 fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
