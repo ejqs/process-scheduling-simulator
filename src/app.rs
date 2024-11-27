@@ -1,4 +1,6 @@
 use crate::process_scheduler::{job_builder, *};
+use egui::{Color32, Rect};
+use egui::{ViewportEvent, ViewportInfo};
 use egui_dropdown::DropDownBox;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -175,9 +177,41 @@ fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
     );
 }
 
-fn job_builder_screen(ui: &mut egui::Ui) {
+// FIXME: Updates only on mouse hover on second window
 fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
     let (scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
+    let plot_rect = ui.available_rect_before_wrap();
+    let painter = ui.painter();
+
+    for window in timeline.windows(2) {
+        if let [(job_name, start), (_, end)] = window {
+            let start = *start as f32;
+            let end = *end as f32;
+            let height = 20.0;
+            let y_pos = plot_rect.center().y;
+
+            // Draw rectangle for job
+            painter.rect_filled(
+                Rect::from_min_max(
+                    egui::pos2(plot_rect.left() + start * 50.0, y_pos - height / 2.0),
+                    egui::pos2(plot_rect.left() + end * 50.0, y_pos + height / 2.0),
+                ),
+                0.0,
+                Color32::from_rgb(100, 149, 237),
+            );
+
+            // Draw job name
+            painter.text(
+                egui::pos2(plot_rect.left() + (start * 50.0 + end * 50.0) / 2.0, y_pos),
+                egui::Align2::CENTER_CENTER,
+                job_name.to_string(),
+                egui::FontId::default(),
+                Color32::BLACK,
+            );
+        }
+    }
+    ui.label(format!("{}", algorithm));
+    ui.label(format!("{:?}", timeline));
     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
         powered_by_egui_and_eframe(ui);
         egui::warn_if_debug_build(ui);
