@@ -24,19 +24,44 @@ pub fn job_builder(job_count: u32) -> Vec<Job> {
     jobs
 }
 
-pub fn process_scheduler(process_scheduling_algorithm: u32, jobs: Vec<Job>) -> Vec<Job> {
-    // process_scheduling_algorithm
-    // 1: FCFS
-    // 2: SJN
-    // 3: SRN
-    // 4: Round Robin
+pub fn randomize_jobs(jobs: Vec<Job>) -> Vec<Job> {
     let mut rng = rand::thread_rng();
-    let mut scheduled_jobs = jobs;
+    let mut scheduled_jobs = jobs.clone();
 
     for job in &mut scheduled_jobs {
         job.arrival_time = rng.gen_range(0..10);
         job.cpu_cycle = rng.gen_range(1..10);
     }
+    let output = scheduled_jobs.clone();
+    output
+}
 
-    scheduled_jobs
+pub fn process_scheduler(algorithm: String, mut jobs: Vec<Job>) -> (Vec<Job>, Vec<(String, u32)>) {
+    let mut rng = rand::thread_rng();
+    let mut timeline: Vec<(String, u32)> = Vec::new();
+
+    // process_scheduling_algorithm
+    // 1: FCFS
+    // 2: SJN
+    // 3: SRN
+    // 4: Round Robin
+
+    let algorithm_num = match algorithm.as_str() {
+        "First Come First Serve (FCFS)" => 1,
+        "Shortest Job Next (SJN)" => 2,
+        "Shortest Remaining Time (SRN)" => 3,
+        "Round Robin" => 4,
+        _ => panic!("Unknown scheduling algorithm"),
+    };
+
+    if algorithm_num == 1 {
+        timeline = vec![
+            ("a".to_string(), 0),
+            ("b".to_string(), 2),
+            ("c".to_string(), 6),
+            ("d".to_string(), 11),
+        ]
+    }
+
+    (jobs, timeline)
 }
