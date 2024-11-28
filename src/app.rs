@@ -1,8 +1,6 @@
 use std::hash::{Hash, Hasher};
 
 use crate::process_scheduler::{job_builder, *};
-use egui::{Color32, Rect};
-use egui::{ViewportEvent, ViewportInfo};
 use egui_dropdown::DropDownBox;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -41,7 +39,7 @@ impl Default for App {
 
 impl App {
     /// Called once before the first frame.
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
 
@@ -188,7 +186,7 @@ fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
 // FIXME: Updates only on mouse hover on second window
 fn timeline_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
     // TODO: ALLOW TO ONLY RUN ONCE
-    let (scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
+    let (_scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
 
     let mut job_segments = Vec::new();
 
