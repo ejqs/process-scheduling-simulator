@@ -25,6 +25,7 @@ impl Default for App {
             jobs: Vec::new(),
             value: 2.7,
             process_scheduling_algorithms: vec![
+                "Random".into(),
                 "First Come First Serve (FCFS)".into(),
                 "Shortest Job Next (SJN)".into(),
                 "Shortest Remaining Time (SRN)".into(),
@@ -44,9 +45,10 @@ impl App {
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
-        if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
-        }
+        // Code Below Enables Persistence
+        // if let Some(storage) = cc.storage {
+        //     return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+        // }
 
         Default::default()
     }
@@ -180,36 +182,45 @@ fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
 // FIXME: Updates only on mouse hover on second window
 fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
     let (scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
-    let plot_rect = ui.available_rect_before_wrap();
-    let painter = ui.painter();
 
-    for window in timeline.windows(2) {
-        if let [(job_name, start), (_, end)] = window {
-            let start = *start as f32;
-            let end = *end as f32;
-            let height = 20.0;
-            let y_pos = plot_rect.center().y;
+    let mut job_segments = Vec::new();
 
-            // Draw rectangle for job
-            painter.rect_filled(
-                Rect::from_min_max(
-                    egui::pos2(plot_rect.left() + start * 50.0, y_pos - height / 2.0),
-                    egui::pos2(plot_rect.left() + end * 50.0, y_pos + height / 2.0),
-                ),
-                0.0,
-                Color32::from_rgb(100, 149, 237),
+    ui.horizontal(|ui| {
+        for i in 0..timeline.len().saturating_sub(1) {
+            let (job_name, start_time, _) = &timeline[i];
+            let (_, _, end_time) = &timeline[i + 1];
+            job_segments.push((job_name.clone(), *start_time as f32, *end_time as f32));
+        }
+
+        let painter = ui.painter();
+        let total_time = if let Some(last) = timeline.last() {
+            last.1 as f32
+        } else {
+            1.0 // Default value when timeline is empty
+        };
+        let width = ui.available_width();
+        let height = 50.0;
+        let rect = egui::Rect::from_min_size(ui.cursor().min, egui::vec2(width, height));
+        painter.rect_filled(rect, 0.0, egui::Color32::LIGHT_GRAY);
+
+        for (job_name, start_time, end_time) in job_segments {
+            let x_start = rect.left() + (start_time / total_time) * rect.width();
+            let x_end = rect.left() + (end_time / total_time) * rect.width();
+            let job_rect = egui::Rect::from_min_max(
+                egui::pos2(x_start, rect.top()),
+                egui::pos2(x_end, rect.bottom()),
             );
-
-            // Draw job name
+            painter.rect_filled(job_rect, 0.0, egui::Color32::from_rgb(100, 200, 100));
             painter.text(
-                egui::pos2(plot_rect.left() + (start * 50.0 + end * 50.0) / 2.0, y_pos),
+                job_rect.center(),
                 egui::Align2::CENTER_CENTER,
-                job_name.to_string(),
+                job_name,
                 egui::FontId::default(),
-                Color32::BLACK,
+                egui::Color32::BLACK,
             );
         }
-    }
+    });
+
     ui.label(format!("{}", algorithm));
     ui.label(format!("{:?}", timeline));
     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
