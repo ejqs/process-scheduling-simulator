@@ -2135,6 +2135,7 @@ dependencies = [
  "egui-dropdown",
  "env_logger",
  "log",
+ "rand",
  "serde",
  "wasm-bindgen-futures",
  "web-sys",
