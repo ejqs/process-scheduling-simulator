@@ -1,3 +1,5 @@
+use std::hash::{Hash, Hasher};
+
 use crate::process_scheduler::{job_builder, *};
 use egui::{Color32, Rect};
 use egui::{ViewportEvent, ViewportInfo};
@@ -90,7 +92,11 @@ impl eframe::App for App {
 
             ui.horizontal(|ui| {
                 ui.label("Number of Jobs: ");
-                ui.add(egui::DragValue::new(&mut self.job_count).range(0..=u16::MAX));
+                ui.add(
+                    egui::DragValue::new(&mut self.job_count)
+                        .range(0..=u16::MAX)
+                        .speed(0.02),
+                );
             });
 
             ui.horizontal(|ui| {
@@ -173,28 +179,29 @@ fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
         move |_, _| {
             // Define the UI for the new viewport here
             egui::CentralPanel::default().show(&ctx_clone, |ui| {
-                job_builder_screen(ui, algorithm.clone(), jobs.clone());
+                timeline_builder_screen(ui, algorithm.clone(), jobs.clone());
             });
         },
     );
 }
 
 // FIXME: Updates only on mouse hover on second window
-fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
+fn timeline_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
+    // TODO: ALLOW TO ONLY RUN ONCE
     let (scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
 
     let mut job_segments = Vec::new();
 
     ui.horizontal(|ui| {
-        for i in 0..timeline.len().saturating_sub(1) {
-            let (job_name, start_time, _) = &timeline[i];
-            let (_, _, end_time) = &timeline[i + 1];
+        for i in 0..timeline.len() {
+            let (job_name, start_time, end_time) = &timeline[i];
             job_segments.push((job_name.clone(), *start_time as f32, *end_time as f32));
         }
 
+        // println!("{:?}", job_segments);
         let painter = ui.painter();
         let total_time = if let Some(last) = timeline.last() {
-            last.1 as f32
+            last.2 as f32
         } else {
             1.0 // Default value when timeline is empty
         };
@@ -204,13 +211,22 @@ fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
         painter.rect_filled(rect, 0.0, egui::Color32::LIGHT_GRAY);
 
         for (job_name, start_time, end_time) in job_segments {
+            let color = {
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                job_name.hash(&mut hasher);
+                let hash = hasher.finish();
+                let r = (hash & 0xFF) as u8;
+                let g = ((hash >> 8) & 0xFF) as u8;
+                let b = ((hash >> 16) & 0xFF) as u8;
+                egui::Color32::from_rgb(r, g, b)
+            };
             let x_start = rect.left() + (start_time / total_time) * rect.width();
             let x_end = rect.left() + (end_time / total_time) * rect.width();
             let job_rect = egui::Rect::from_min_max(
                 egui::pos2(x_start, rect.top()),
                 egui::pos2(x_end, rect.bottom()),
             );
-            painter.rect_filled(job_rect, 0.0, egui::Color32::from_rgb(100, 200, 100));
+            painter.rect_filled(job_rect, 0.0, color);
             painter.text(
                 job_rect.center(),
                 egui::Align2::CENTER_CENTER,
@@ -218,9 +234,18 @@ fn job_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
                 egui::FontId::default(),
                 egui::Color32::BLACK,
             );
+
+            // Draw a line to separate the jobs
+            painter.line_segment(
+                [
+                    egui::pos2(x_end, rect.top()),
+                    egui::pos2(x_end, rect.bottom()),
+                ],
+                (0.5, egui::Color32::BLACK),
+            );
         }
     });
-
+    ui.add_space(50.0);
     ui.label(format!("{}", algorithm));
     ui.label(format!("{:?}", timeline));
     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
