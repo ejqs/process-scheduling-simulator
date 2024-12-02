@@ -21,18 +21,32 @@ pub struct Job {
     pub turnaround_time: u32,
 }
 
-pub fn job_builder(job_count: u32) -> Vec<Job> {
+pub fn job_builder(old_jobs: &Vec<Job>, job_count: u32) -> Vec<Job> {
     let mut jobs = Vec::new();
-    for i in 0..job_count {
-        jobs.push(Job {
-            job_name: format!("{}", (b'A' + i as u8) as char),
-            arrival_time: 0,
-            needed_cpu_cycle: 0,
-            remaining_cpu_cycle: 0,
-            completion_time: 0,
-            turnaround_time: 0,
-        });
+    for old_job in old_jobs {
+        jobs.push(old_job.clone());
     }
+
+    let remaining_job_to_build = job_count as i32 - jobs.len() as i32;
+    // To build
+    if remaining_job_to_build > 0 {
+        for i in 0..remaining_job_to_build {
+            jobs.push(Job {
+                job_name: format!("{}", (b'A' + (jobs.len() as u8 + i as u8)) as char),
+                arrival_time: 0,
+                needed_cpu_cycle: 0,
+                remaining_cpu_cycle: 0,
+                completion_time: 0,
+                turnaround_time: 0,
+            });
+        }
+    } else {
+        // Destroy
+        for _ in 0..remaining_job_to_build.abs() {
+            jobs.pop();
+        }
+    }
+
     jobs
 }
 
