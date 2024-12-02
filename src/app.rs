@@ -151,7 +151,7 @@ impl eframe::App for App {
             });
 
             if self.jobs.len() as u32 != self.job_count {
-                self.jobs = job_builder(self.job_count);
+                self.jobs = job_builder(&self.jobs, self.job_count);
             }
             ui.horizontal(|ui| {
                 ui.label("Job Details | CPU Cycle | Arrival Time");
