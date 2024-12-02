@@ -160,7 +160,7 @@ impl eframe::App for App {
             for job in &mut self.jobs {
                 ui.horizontal(|ui| {
                     ui.label(format!("Jobs: {}", job.job_name));
-                    ui.add(egui::DragValue::new(&mut job.cpu_cycle).range(0..=u16::MAX));
+                    ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(0..=u16::MAX));
                     ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
                 });
             }
