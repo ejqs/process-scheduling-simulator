@@ -359,7 +359,7 @@ pub fn process_scheduler(
     else if algorithm_num == 4 {
         let mut time_start_work_uninterrupted: u32 = 0;
         let mut time_end_work_uninterrupted: u32;
-        let mut just_popped: bool = false;
+        let mut just_popped: bool;
         println!("Total Job Count: {}", total_job_count);
         while finished_jobs_count < total_job_count {
             // Handle Job Arrival, if there are still jobs pending
