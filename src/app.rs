@@ -28,7 +28,7 @@ impl Default for App {
                 "Random".into(),
                 "First Come First Serve (FCFS)".into(),
                 "Shortest Job Next (SJN)".into(),
-                "Shortest Remaining Time (SRN)".into(),
+                "Shortest Remaining Time (SRT)".into(),
                 "Round Robin".into(),
             ],
             buf: String::new(),
