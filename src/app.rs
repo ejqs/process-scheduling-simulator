@@ -13,6 +13,7 @@ pub struct App {
     #[serde(skip)] // This how you opt-out of serialization of a field
     value: f32,
     process_scheduling_algorithms: Vec<String>,
+    time_quantum: u32,
     buf: String,
     viewport_open: bool,
 }
@@ -31,6 +32,7 @@ impl Default for App {
                 "Shortest Remaining Time (SRT)".into(),
                 "Round Robin".into(),
             ],
+            time_quantum: 0,
             buf: String::new(),
             viewport_open: false,
         }
@@ -146,13 +148,31 @@ impl eframe::App for App {
 
                 // TODO: Allow for User Closing
                 if self.viewport_open {
-                    spawn_new_window(ctx, self.buf.clone(), self.jobs.clone());
+                    spawn_new_window(
+                        ctx,
+                        self.buf.clone(),
+                        self.jobs.clone(),
+                        self.time_quantum.clone(),
+                    );
                 }
             });
 
             if self.jobs.len() as u32 != self.job_count {
                 self.jobs = job_builder(&self.jobs, self.job_count);
             }
+            ui.add_space(16.0);
+            // TIME QUANTUM
+            if self.buf == self.process_scheduling_algorithms[4] {
+                ui.horizontal(|ui| {
+                    ui.label(format!("Time Quantum: "));
+                    ui.add(
+                        egui::DragValue::new(&mut self.time_quantum)
+                            .range(0..=u16::MAX)
+                            .speed(0.02),
+                    );
+                });
+            }
+
             ui.horizontal(|ui| {
                 ui.label("Job Details | CPU Cycle | Arrival Time");
             });
@@ -168,7 +188,7 @@ impl eframe::App for App {
     }
 }
 
-fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
+fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>, time_quantum: u32) {
     let ctx_clone = ctx.clone();
 
     ctx.show_viewport_deferred(
@@ -177,16 +197,22 @@ fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>) {
         move |_, _| {
             // Define the UI for the new viewport here
             egui::CentralPanel::default().show(&ctx_clone, |ui| {
-                timeline_builder_screen(ui, algorithm.clone(), jobs.clone());
+                timeline_builder_screen(ui, algorithm.clone(), jobs.clone(), time_quantum.clone());
             });
         },
     );
 }
 
 // FIXME: Updates only on mouse hover on second window
-fn timeline_builder_screen(ui: &mut egui::Ui, algorithm: String, jobs: Vec<Job>) {
+fn timeline_builder_screen(
+    ui: &mut egui::Ui,
+    algorithm: String,
+    jobs: Vec<Job>,
+    time_quantum: u32,
+) {
     // TODO: ALLOW TO ONLY RUN ONCE
-    let (_scheduled_jobs, timeline) = process_scheduler(algorithm.clone(), jobs.clone());
+    let (_scheduled_jobs, timeline) =
+        process_scheduler(algorithm.clone(), jobs.clone(), time_quantum.clone());
 
     let mut job_segments = Vec::new();
 

@@ -84,6 +84,7 @@ pub fn randomize_jobs(jobs: Vec<Job>) -> Vec<Job> {
 pub fn process_scheduler(
     algorithm: String,
     mut jobs: Vec<Job>,
+    time_quantum: u32,
 ) -> (Vec<Job>, Vec<(String, u32, u32)>) {
     let mut rng = rand::thread_rng();
     let mut timeline: Vec<(String, u32, u32)> = Vec::new();
@@ -355,10 +356,106 @@ pub fn process_scheduler(
         }
     }
     // Round Robin
-    // else if algorithm_num == 4 {
+    else if algorithm_num == 4 {
+        let mut time_start_work_uninterrupted: u32 = 0;
+        let mut time_end_work_uninterrupted: u32;
+        let mut just_popped: bool = false;
+        println!("Total Job Count: {}", total_job_count);
+        while finished_jobs_count < total_job_count {
+            // Handle Job Arrival, if there are still jobs pending
+            if arrived_jobs_count < total_job_count {
+                //                                       vv prevents bugs when arrival times are misconfigured
+                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                    println!(
+                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                        jobs[arrived_jobs_count].job_name, cpu_counter
+                    );
+                    queue.push_back(jobs[arrived_jobs_count].clone());
+                    arrived_jobs_count += 1;
+                }
+            }
+            just_popped = false;
+            // If CPU idle and queue is not empty && PROCESS JOB
+            if cpu_status == CPUStatus::Idle && queue.is_empty().not() {
+                // TODO: Not sure if necessary
+                let pop_back = queue.pop_front();
+                if pop_back != None {
+                    current_job = pop_back.expect("Unexpected: pop_back is None.");
+                }
+                time_start_work_uninterrupted = cpu_counter;
+                cpu_status = CPUStatus::Working;
+                just_popped = true;
+            }
 
-    // }
-    else {
+            if cpu_status == CPUStatus::Working {
+                // Handle preempting jobs on time quantum
+                // e.g. time_quantum = 3;; 0, 1, 2, 3, 4, 5, 6
+                //                                  ^        ^
+                if cpu_counter % time_quantum == 0 && !just_popped {
+                    if queue.is_empty().not() {
+                        time_end_work_uninterrupted = cpu_counter; // preempt happens before work
+                        timeline.push((
+                            { current_job.job_name.to_string() },
+                            { time_start_work_uninterrupted },
+                            { time_end_work_uninterrupted },
+                        ));
+                        queue.push_back(current_job);
+                        current_job = queue.pop_front().unwrap();
+                        time_start_work_uninterrupted = cpu_counter; // new start
+                    }
+                }
+
+                // WORKING
+                if current_job.remaining_cpu_cycle > 0 {
+                    println!("JOB WORKING: {}", current_job.job_name);
+                    current_job.remaining_cpu_cycle -= 1;
+                }
+
+                // IF JOB JUST FINISHED
+                if current_job.remaining_cpu_cycle == 0 {
+                    println!(
+                        "JOB FINISHED: {} // CPU_COUNTER: {}",
+                        current_job.job_name, cpu_counter
+                    );
+
+                    // Will not work for other algorithms
+                    // Return already processed
+                    time_end_work_uninterrupted = cpu_counter + 1;
+                    timeline.push((
+                        { current_job.job_name.to_string() },
+                        { time_start_work_uninterrupted },
+                        { time_end_work_uninterrupted },
+                    ));
+
+                    finished_jobs.push(current_job.clone());
+                    // if !queue.is_empty() {
+                    //     queue.make_contiguous().sort_by(|a, b| {
+                    //         a.remaining_cpu_cycle
+                    //             .partial_cmp(&b.remaining_cpu_cycle)
+                    //             .unwrap()
+                    //     });
+                    //     time_start_work_uninterrupted = cpu_counter + 1;
+                    //     current_job = queue.pop_front().unwrap();
+                    // }
+
+                    finished_jobs_count += 1;
+
+                    println!(
+                        "FINISHED JOBS COUNT: {} // CPU_COUNTER: {}",
+                        finished_jobs_count, cpu_counter
+                    );
+                }
+            }
+            if current_job.remaining_cpu_cycle == 0 {
+                cpu_status = CPUStatus::Idle;
+            }
+            cpu_counter += 1;
+
+            if cpu_counter > expected_cpu_max * 2 {
+                panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
+            }
+        }
+    } else {
         panic!("Unexpected: algorithm_num is -1")
     }
 
@@ -400,7 +497,7 @@ mod tests {
             completion_time: 0,
             turnaround_time: 0,
         });
-        let (_, timeline) = process_scheduler("Shortest Job Next (SJN)".to_string(), jobs);
+        let (_, timeline) = process_scheduler("Shortest Job Next (SJN)".to_string(), jobs, 0);
         assert_eq!(
             timeline,
             [
@@ -446,7 +543,7 @@ mod tests {
             completion_time: 0,
             turnaround_time: 0,
         });
-        let (_, timeline) = process_scheduler("Shortest Remaining Time (SRT)".to_string(), jobs);
+        let (_, timeline) = process_scheduler("Shortest Remaining Time (SRT)".to_string(), jobs, 0);
         assert_eq!(
             timeline,
             [
@@ -456,6 +553,57 @@ mod tests {
                 ("B".to_string(), 3, 5),
                 ("D".to_string(), 5, 9),
                 ("A".to_string(), 9, 14),
+            ]
+        )
+    }
+
+    #[test]
+    fn rr_works() {
+        let mut jobs: Vec<Job> = vec![];
+        jobs.push(Job {
+            job_name: "A".to_string(),
+            arrival_time: 0,
+            needed_cpu_cycle: 8,
+            remaining_cpu_cycle: 8,
+            completion_time: 0,
+            turnaround_time: 0,
+        });
+        jobs.push(Job {
+            job_name: "B".to_string(),
+            arrival_time: 1,
+            needed_cpu_cycle: 4,
+            remaining_cpu_cycle: 4,
+            completion_time: 0,
+            turnaround_time: 0,
+        });
+        jobs.push(Job {
+            job_name: "C".to_string(),
+            arrival_time: 2,
+            needed_cpu_cycle: 9,
+            remaining_cpu_cycle: 9,
+            completion_time: 0,
+            turnaround_time: 0,
+        });
+        jobs.push(Job {
+            job_name: "D".to_string(),
+            arrival_time: 3,
+            needed_cpu_cycle: 5,
+            remaining_cpu_cycle: 5,
+            completion_time: 0,
+            turnaround_time: 0,
+        });
+        let (_, timeline) = process_scheduler("Round Robin".to_string(), jobs, 4);
+        assert_eq!(
+            timeline,
+            [
+                ("A".to_string(), 0, 4),
+                ("B".to_string(), 4, 8),
+                ("C".to_string(), 8, 12),
+                ("D".to_string(), 12, 16),
+                ("A".to_string(), 16, 20),
+                ("C".to_string(), 20, 24),
+                ("D".to_string(), 24, 25),
+                ("C".to_string(), 25, 26),
             ]
         )
     }
