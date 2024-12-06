@@ -21,25 +21,42 @@ pub struct Job {
     pub turnaround_time: u32,
 }
 
+fn return_job_name(i: usize) -> String {
+    let mut n = i + 1;
+    let mut name = String::new();
+    while n > 0 {
+        let rem = (n - 1) % 26;
+        name.insert(0, (b'A' + rem as u8) as char);
+        n = (n - 1) / 26;
+    }
+    name
+}
 pub fn job_builder(old_jobs: &Vec<Job>, job_count: u32) -> Vec<Job> {
     let mut jobs = Vec::new();
-    for old_job in old_jobs {
-        jobs.push(old_job.clone());
+    // https://stackoverflow.com/a/45344045
+
+    let mut job_built: usize = 0;
+    for mut old_job in old_jobs.clone() {
+        old_job.job_name = return_job_name(job_built);
+        jobs.push(old_job);
+        job_built += 1;
     }
 
     let remaining_job_to_build = job_count as i32 - jobs.len() as i32;
     // To build
     // FIXME: Properly test and increment letters
     if remaining_job_to_build > 0 {
-        for i in 0..remaining_job_to_build {
+        for _ in 0..remaining_job_to_build {
             jobs.push(Job {
-                job_name: format!("{}", (b'A' + (jobs.len() as u8 + i as u8)) as char),
+                // job_name: format!("{}", (b'A' + (jobs.len() as u8 + i as u8)) as char),
+                job_name: return_job_name(job_built as usize),
                 arrival_time: 0,
                 needed_cpu_cycle: 0,
                 remaining_cpu_cycle: 0,
                 completion_time: 0,
                 turnaround_time: 0,
             });
+            job_built += 1;
         }
     } else {
         // Destroy
