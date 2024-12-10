@@ -147,8 +147,9 @@ impl eframe::App for App {
                 }
 
                 // TODO: Allow for User Closing
+                // TODO: Force Close Window on Unsafe Operations
                 if self.viewport_open {
-                    spawn_new_window(
+                    self.spawn_new_window(
                         ctx,
                         self.buf.clone(),
                         self.jobs.clone(),
@@ -162,6 +163,7 @@ impl eframe::App for App {
             }
             ui.add_space(16.0);
             // TIME QUANTUM
+            // TODO: MAKE SURE THIS IS CHECKED!
             if self.buf == self.process_scheduling_algorithms[4] {
                 ui.horizontal(|ui| {
                     ui.label(format!("Time Quantum: "));
@@ -188,21 +190,45 @@ impl eframe::App for App {
     }
 }
 
-fn spawn_new_window(ctx: &egui::Context, algorithm: String, jobs: Vec<Job>, time_quantum: u32) {
-    let ctx_clone = ctx.clone();
+impl App {
+    fn spawn_new_window(
+        &mut self,
+        ctx: &egui::Context,
+        algorithm: String,
+        jobs: Vec<Job>,
+        time_quantum: u32,
+    ) {
+        // return value adjusts "viewport_open"
+        let ctx_clone = ctx.clone();
+        ctx.show_viewport_immediate(
+            egui::ViewportId::from_hash_of(1),
+            egui::ViewportBuilder::default(),
+            move |ctx, class| {
+                assert!(
+                    class == egui::ViewportClass::Immediate,
+                    "This egui backend doesn't support multiple viewports"
+                );
+                // Define the UI for the new viewport here
+                egui::CentralPanel::default().show(&ctx_clone, |ui| {
+                    timeline_builder_screen(
+                        ui,
+                        algorithm.clone(),
+                        jobs.clone(),
+                        time_quantum.clone(),
+                    );
+                });
 
-    ctx.show_viewport_deferred(
-        egui::ViewportId::from_hash_of(1),
-        egui::ViewportBuilder::default(),
-        move |_, _| {
-            // Define the UI for the new viewport here
-            egui::CentralPanel::default().show(&ctx_clone, |ui| {
-                timeline_builder_screen(ui, algorithm.clone(), jobs.clone(), time_quantum.clone());
-            });
-        },
-    );
+                // I want to die. multiple days of trying to understand egui docmentation
+                // the solution looks like this -> https://github.com/emilk/egui/discussions/5306#discussioncomment-11067057
+                if ctx.input(|i| i.viewport().close_requested()) {
+                    // Tell parent viewport that we should not show next frame:
+                    // println!("recieved close request!!");
+                    self.viewport_open = false;
+                };
+            },
+        );
+    }
 }
-
 // FIXME: Updates only on mouse hover on second window
 fn timeline_builder_screen(
     ui: &mut egui::Ui,
