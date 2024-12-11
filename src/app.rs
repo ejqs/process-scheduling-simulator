@@ -94,7 +94,7 @@ impl eframe::App for App {
                 ui.label("Number of Jobs: ");
                 ui.add(
                     egui::DragValue::new(&mut self.job_count)
-                        .range(0..=u16::MAX)
+                        .range(1..=u16::MAX)
                         .speed(0.02),
                 );
             });
@@ -169,7 +169,7 @@ impl eframe::App for App {
                     ui.label(format!("Time Quantum: "));
                     ui.add(
                         egui::DragValue::new(&mut self.time_quantum)
-                            .range(0..=u16::MAX)
+                            .range(1..=u16::MAX)
                             .speed(0.02),
                     );
                 });
@@ -182,7 +182,7 @@ impl eframe::App for App {
             for job in &mut self.jobs {
                 ui.horizontal(|ui| {
                     ui.label(format!("Jobs: {}", job.job_name));
-                    ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(0..=u16::MAX));
+                    ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(1..=u16::MAX));
                     ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
                 });
             }
