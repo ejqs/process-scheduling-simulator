@@ -32,7 +32,7 @@ impl Default for App {
                 "Shortest Remaining Time (SRT)".into(),
                 "Round Robin".into(),
             ],
-            time_quantum: 0,
+            time_quantum: 5,
             buf: String::new(),
             viewport_open: false,
         }
