@@ -190,6 +190,9 @@ impl eframe::App for App {
                     ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
                 });
             }
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                github_link(ui);
+            });
         });
     }
 }
@@ -319,5 +322,16 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
             "https://github.com/emilk/egui/tree/master/crates/eframe",
         );
         ui.label(".");
+    });
+}
+
+fn github_link(ui: &mut egui::Ui) {
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 0.0;
+        ui.label("Github: ");
+        ui.hyperlink_to(
+            "earlsab/process-scheduling-simulator",
+            "https://github.com/earlsab/process-scheduling-simulator",
+        );
     });
 }
