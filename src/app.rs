@@ -68,24 +68,24 @@ impl eframe::App for App {
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
+        // egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+        //     // The top panel is often a good place for a menu bar:
 
-            egui::menu::bar(ui, |ui| {
-                // NOTE: no File->Quit on web pages!
-                let is_web = cfg!(target_arch = "wasm32");
-                if !is_web {
-                    ui.menu_button("File", |ui| {
-                        if ui.button("Quit").clicked() {
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                        }
-                    });
-                    ui.add_space(16.0);
-                }
+        //     egui::menu::bar(ui, |ui| {
+        //         // NOTE: no File->Quit on web pages!
+        //         let is_web = cfg!(target_arch = "wasm32");
+        //         if !is_web {
+        //             ui.menu_button("File", |ui| {
+        //                 if ui.button("Quit").clicked() {
+        //                     ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        //                 }
+        //             });
+        //             ui.add_space(16.0);
+        //         }
 
-                egui::widgets::global_theme_preference_buttons(ui);
-            });
-        });
+        //         egui::widgets::global_theme_preference_buttons(ui);
+        //     });
+        // });
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
@@ -271,7 +271,22 @@ fn timeline_builder_screen(
         let rect = egui::Rect::from_min_size(ui.cursor().min, egui::vec2(width, height));
         painter.rect_filled(rect, 0.0, egui::Color32::LIGHT_GRAY);
 
-        for (job_name, start_time, end_time) in job_segments {
+        for i in 0..job_segments.len() {
+            // let mut previous_start_time: f32 = 0.0;
+            let mut previous_end_time: f32 = 0.0;
+            let next_start_time: f32;
+            // let mut next_end_time: f32 = 0.0;
+
+            let (job_name, start_time, end_time) = &job_segments[i];
+            if i != 0 {
+                (_, _, previous_end_time) = job_segments[i - 1];
+            }
+            if i + 1 != job_segments.len() {
+                (_, next_start_time, _) = job_segments[i + 1];
+            } else {
+                next_start_time = -1.0;
+            }
+
             let color = {
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
                 job_name.hash(&mut hasher);
@@ -296,6 +311,28 @@ fn timeline_builder_screen(
                 egui::Color32::BLACK,
             );
 
+            // Paint Start
+            if previous_end_time <= *start_time {
+                painter.text(
+                    job_rect.left_bottom() + egui::vec2(0.0, 20.0),
+                    egui::Align2::LEFT_BOTTOM,
+                    start_time,
+                    egui::FontId::default(),
+                    egui::Color32::BLACK,
+                );
+            }
+
+            if *end_time < next_start_time || next_start_time == -1.0 {
+                // Paint End
+                painter.text(
+                    job_rect.right_bottom() + egui::vec2(0.0, 20.0),
+                    egui::Align2::RIGHT_BOTTOM,
+                    end_time,
+                    egui::FontId::default(),
+                    egui::Color32::BLACK,
+                );
+            }
+
             // Draw a line to separate the jobs
             painter.line_segment(
                 [
@@ -306,7 +343,8 @@ fn timeline_builder_screen(
             );
         }
     });
-    ui.add_space(50.0);
+    ui.add_space(80.0);
+    // ui.label(format!("",));
     ui.label(format!("{}", algorithm));
     ui.label(format!("{:?}", timeline));
 
