@@ -310,18 +310,18 @@ fn timeline_builder_screen(
     ui.label(format!("{}", algorithm));
     ui.label(format!("{:?}", timeline));
 
-    let mut total_turnaround_time: u32 = 0;
+    let mut total_turnaround_time: f64 = 0.0;
 
     for job in &mut returned_jobs {
-        total_turnaround_time += job.turnaround_time;
+        total_turnaround_time += job.turnaround_time as f64;
     }
-    let average_turnaround_time = total_turnaround_time / returned_jobs.len() as u32;
+    let average_turnaround_time = total_turnaround_time / returned_jobs.len() as f64;
 
     egui::Grid::new("some_unique_id")
         .striped(true)
         .show(ui, |ui| {
             ui.label("Average Turnaround Time: ");
-            ui.label(format!("{}", average_turnaround_time));
+            ui.label(format!("{:.2}", average_turnaround_time));
             ui.end_row();
 
             ui.label("Job Name");
@@ -332,7 +332,7 @@ fn timeline_builder_screen(
                 ui.label(format!("Job {}", job.job_name));
                 ui.label(format!("{}", job.completion_time));
                 ui.label(format!("{}", job.turnaround_time));
-                total_turnaround_time += job.turnaround_time;
+                total_turnaround_time += job.turnaround_time as f64;
                 ui.end_row();
             }
         });
