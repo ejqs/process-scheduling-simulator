@@ -204,6 +204,9 @@ pub fn process_scheduler(
                         { (cpu_counter + 1) - current_job.needed_cpu_cycle },
                         { cpu_counter + 1 },
                     )); // Return already processed
+                    current_job.completion_time = cpu_counter + 1;
+                    current_job.turnaround_time =
+                        current_job.completion_time - current_job.arrival_time;
                     finished_jobs.push(current_job.clone());
                     cpu_status = CPUStatus::Idle;
                     finished_jobs_count += 1;
@@ -220,6 +223,7 @@ pub fn process_scheduler(
                 panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
             }
         }
+        to_return_jobs = finished_jobs.clone();
 
         // for job in &mut jobs {
         //     timeline.push(({ job.job_name.to_string() }, { job.arrival_time }, {
@@ -287,6 +291,9 @@ pub fn process_scheduler(
                         { (cpu_counter + 1) - current_job.needed_cpu_cycle },
                         { cpu_counter + 1 },
                     )); // Return already processed
+                    current_job.completion_time = cpu_counter + 1;
+                    current_job.turnaround_time =
+                        current_job.completion_time - current_job.arrival_time;
                     finished_jobs.push(current_job.clone());
                     cpu_status = CPUStatus::Idle;
                     finished_jobs_count += 1;
@@ -302,6 +309,7 @@ pub fn process_scheduler(
             if cpu_counter > expected_cpu_max * 2 {
                 panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
             }
+            to_return_jobs = finished_jobs.clone();
         }
     }
     // Shortest Remaining Time (SRT)
@@ -383,6 +391,9 @@ pub fn process_scheduler(
                         { time_start_work_uninterrupted },
                         { time_end_work_uninterrupted },
                     ));
+                    current_job.completion_time = cpu_counter + 1;
+                    current_job.turnaround_time =
+                        current_job.completion_time - current_job.arrival_time;
 
                     finished_jobs.push(current_job.clone());
                     // if !queue.is_empty() {
@@ -413,6 +424,8 @@ pub fn process_scheduler(
             if cpu_counter > expected_cpu_max * 2 {
                 panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
             }
+
+            to_return_jobs = finished_jobs.clone();
         }
     }
     // Round Robin
@@ -486,7 +499,9 @@ pub fn process_scheduler(
                         { time_start_work_uninterrupted },
                         { time_end_work_uninterrupted },
                     ));
-
+                    current_job.completion_time = cpu_counter + 1;
+                    current_job.turnaround_time =
+                        current_job.completion_time - current_job.arrival_time;
                     finished_jobs.push(current_job.clone());
                     // if !queue.is_empty() {
                     //     queue.make_contiguous().sort_by(|a, b| {
@@ -515,6 +530,7 @@ pub fn process_scheduler(
                 panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
             }
         }
+        to_return_jobs = finished_jobs.clone();
     } else {
         panic!("Unexpected: algorithm_num is -1")
     }
