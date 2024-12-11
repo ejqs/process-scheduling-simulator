@@ -1,7 +1,6 @@
-use std::hash::{Hash, Hasher};
-
 use crate::process_scheduler::{job_builder, *};
 use egui_dropdown::DropDownBox;
+use std::hash::{Hash, Hasher};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -179,17 +178,22 @@ impl eframe::App for App {
                 });
             }
 
-            ui.horizontal(|ui| {
-                ui.label("Job Details | CPU Cycle | Arrival Time");
-            });
+            egui::Grid::new("some_unique_id")
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Job Details");
+                    ui.label("CPU Cycle");
+                    ui.label("Arrival Time");
+                    ui.end_row();
 
-            for job in &mut self.jobs {
-                ui.horizontal(|ui| {
-                    ui.label(format!("Jobs: {}", job.job_name));
-                    ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(1..=u16::MAX));
-                    ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
+                    for job in &mut self.jobs {
+                        ui.label(format!("Jobs: {}", job.job_name));
+                        ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(1..=u16::MAX));
+                        ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
+                        ui.end_row();
+                    }
                 });
-            }
+
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 github_link(ui);
             });
@@ -244,7 +248,7 @@ fn timeline_builder_screen(
     time_quantum: u32,
 ) {
     // TODO: ALLOW TO ONLY RUN ONCE
-    let (_scheduled_jobs, timeline) =
+    let (mut returned_jobs, timeline) =
         process_scheduler(algorithm.clone(), jobs.clone(), time_quantum.clone());
 
     let mut job_segments = Vec::new();
@@ -305,6 +309,34 @@ fn timeline_builder_screen(
     ui.add_space(50.0);
     ui.label(format!("{}", algorithm));
     ui.label(format!("{:?}", timeline));
+
+    let mut total_turnaround_time: u32 = 0;
+
+    for job in &mut returned_jobs {
+        total_turnaround_time += job.turnaround_time;
+    }
+    let average_turnaround_time = total_turnaround_time / returned_jobs.len() as u32;
+
+    egui::Grid::new("some_unique_id")
+        .striped(true)
+        .show(ui, |ui| {
+            ui.label("Average Turnaround Time: ");
+            ui.label(format!("{}", average_turnaround_time));
+            ui.end_row();
+
+            ui.label("Job Name");
+            ui.label("Completion Time");
+            ui.label("Turn Around");
+            ui.end_row();
+            for job in &mut returned_jobs {
+                ui.label(format!("Job {}", job.job_name));
+                ui.label(format!("{}", job.completion_time));
+                ui.label(format!("{}", job.turnaround_time));
+                total_turnaround_time += job.turnaround_time;
+                ui.end_row();
+            }
+        });
+
     ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
         powered_by_egui_and_eframe(ui);
         egui::warn_if_debug_build(ui);
