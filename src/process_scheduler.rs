@@ -161,12 +161,72 @@ pub fn process_scheduler(
     }
     // First Come First Serve
     else if algorithm_num == 1 {
-        for job in &mut jobs {
-            timeline.push(({ job.job_name.to_string() }, { job.arrival_time }, {
-                job.needed_cpu_cycle
-            }))
-            // TODO: Modify jobs, and update numbers
+        while finished_jobs_count < total_job_count {
+            // Handle Job Arrival, if there are still jobs pending
+            if arrived_jobs_count < total_job_count {
+                //                                       vv prevents crashing when arrival times are misconfigured
+                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                    println!(
+                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                        jobs[arrived_jobs_count].job_name, cpu_counter
+                    );
+                    queue.push_back(jobs[arrived_jobs_count].clone());
+                    arrived_jobs_count += 1;
+                }
+            }
+            // If CPU idle and queue is not empty && PROCESS JOB
+            if cpu_status == CPUStatus::Idle && queue.is_empty().not() {
+                queue
+                    .make_contiguous()
+                    .sort_by(|a, b| a.arrival_time.partial_cmp(&b.arrival_time).unwrap());
+                let pop_back = queue.pop_front();
+                if pop_back != None {
+                    current_job = pop_back.expect("Unexpected: pop_back is None.");
+                }
+                println!("JOB WORKING: {}", current_job.job_name);
+                cpu_status = CPUStatus::Working;
+            }
+            // IF CPU is Working
+            // Not else if to allow cpu to work upon arrival
+            if cpu_status == CPUStatus::Working {
+                if current_job.remaining_cpu_cycle > 0 {
+                    current_job.remaining_cpu_cycle -= 1;
+                }
+                // If Job just finished; Cannot be else if
+                if current_job.remaining_cpu_cycle == 0 {
+                    println!(
+                        "JOB FINISHED: {} // CPU_COUNTER: {}",
+                        current_job.job_name, cpu_counter
+                    );
+                    // Will not work for other algorithms
+                    timeline.push((
+                        { current_job.job_name.to_string() },
+                        { (cpu_counter + 1) - current_job.needed_cpu_cycle },
+                        { cpu_counter + 1 },
+                    )); // Return already processed
+                    finished_jobs.push(current_job.clone());
+                    cpu_status = CPUStatus::Idle;
+                    finished_jobs_count += 1;
+
+                    println!(
+                        "FINISHED JOBS COUNT: {} // CPU_COUNTER: {}",
+                        finished_jobs_count, cpu_counter
+                    );
+                }
+            }
+            cpu_counter += 1;
+
+            if cpu_counter > expected_cpu_max * 2 {
+                panic!("cpu_counter is greater than DOUBLE of EXPECTED_CPU_MAX")
+            }
         }
+
+        // for job in &mut jobs {
+        //     timeline.push(({ job.job_name.to_string() }, { job.arrival_time }, {
+        //         job.needed_cpu_cycle
+        //     }))
+        //     // TODO: Modify jobs, and update numbers
+        // }
     }
     // Shortest Job Next (SJN)
     else if algorithm_num == 2 {
