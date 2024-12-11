@@ -51,8 +51,8 @@ pub fn job_builder(old_jobs: &Vec<Job>, job_count: u32) -> Vec<Job> {
                 // job_name: format!("{}", (b'A' + (jobs.len() as u8 + i as u8)) as char),
                 job_name: return_job_name(job_built as usize),
                 arrival_time: 0,
-                needed_cpu_cycle: 0,
-                remaining_cpu_cycle: 0,
+                needed_cpu_cycle: 1,
+                remaining_cpu_cycle: 1,
                 completion_time: 0,
                 turnaround_time: 0,
             });
