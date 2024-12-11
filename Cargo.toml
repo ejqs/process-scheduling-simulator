@@ -6,9 +6,18 @@ edition = "2021"
 include = ["LICENSE-APACHE", "LICENSE-MIT", "**/*.rs", "Cargo.toml"]
 rust-version = "1.83"
 
+
 [package.metadata.docs.rs]
 all-features = true
-targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+targets = ["x86_64-unknown-linux-gnu", "aarch64-apple-darwin"]
+
+build="build.rs"
+
+# https://github.com/Rust-SDL2/rust-sdl2/issues/539#issuecomment-372304433
+[dependencies.sdl2]
+version = "*"
+default-features = false
+features = ["use_mac_framework","image","ttf","mixer","gfx"]
 
 [dependencies]
 egui = "0.29"
@@ -51,3 +60,4 @@ opt-level = 2
 # If you fork https://github.com/emilk/egui you can test with:
 # egui = { path = "../egui/crates/egui" }
 # eframe = { path = "../egui/crates/eframe" }
+
