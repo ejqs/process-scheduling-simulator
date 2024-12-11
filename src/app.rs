@@ -16,6 +16,7 @@ pub struct App {
     time_quantum: u32,
     buf: String,
     viewport_open: bool,
+    open_sim_string: String,
 }
 
 impl Default for App {
@@ -33,8 +34,9 @@ impl Default for App {
                 "Round Robin".into(),
             ],
             time_quantum: 5,
-            buf: String::new(),
+            buf: "First Come First Serve (FCFS)".to_string(),
             viewport_open: false,
+            open_sim_string: "Open Simulator".to_string(),
         }
     }
 }
@@ -123,15 +125,17 @@ impl eframe::App for App {
             ui.horizontal(|ui| {
                 if ui
                     .add(
-                        egui::Button::new("Open Simulator")
+                        egui::Button::new(self.open_sim_string.clone())
                             .fill(egui::Color32::from_rgb(100, 149, 237)),
                     )
                     .clicked()
                 {
                     if self.viewport_open == true {
-                        self.viewport_open = false
+                        self.viewport_open = false;
+                        self.open_sim_string = "Open Simulator".to_string();
                     } else {
-                        self.viewport_open = true
+                        self.viewport_open = true;
+                        self.open_sim_string = "Close Simulator".to_string();
                     };
                     println!("{:?}", self.buf);
                     println!("{}", self.job_count);
