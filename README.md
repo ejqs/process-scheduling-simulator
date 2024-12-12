@@ -3,14 +3,14 @@
 A lot of ChatGPT/Github Copilot was used for the timeline drawer. \
 Project's main purpose was to throw myself into a task to understand rust.
 
-## Tested
+### Tested
 
 Works with examples from \
 Understanding Operating Systems (6th Edition) \
 by Ann McIver McHoes & Ida M. Flynn
 p.g. 116-126
 
-## To Note
+### To Note
 
 - Not sure how to run aarch64-apple-darwin build of project. `Mac users` might have better luck building the project themselves.
 - `Windows users` might need to get around their windows defender. When prompt comes up click "More info" then click "Run anyways".
