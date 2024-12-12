@@ -33,10 +33,12 @@ fn return_job_name(i: usize) -> String {
 }
 pub fn job_builder(old_jobs: &Vec<Job>, job_count: u32) -> Vec<Job> {
     let mut jobs = Vec::new();
-    // https://stackoverflow.com/a/45344045
+    let mut old_jobs_cloned: Vec<Job> = old_jobs.clone();
+    old_jobs_cloned.sort_by(|a, b| a.job_name.partial_cmp(&b.job_name).unwrap());
 
+    // https://stackoverflow.com/a/45344045
     let mut job_built: usize = 0;
-    for mut old_job in old_jobs.clone() {
+    for mut old_job in old_jobs_cloned {
         old_job.job_name = return_job_name(job_built);
         jobs.push(old_job);
         job_built += 1;
