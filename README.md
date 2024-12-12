@@ -15,3 +15,4 @@ p.g. 116-126
 - Not sure how to run aarch64-apple-darwin build of project. `Mac users` might have better luck building the project themselves.
 - `Windows users` might need to get around their windows defender. When prompt comes up click "More info" then click "Run anyways".
 - Project might be using a lot of rust anti-patterns as I'm still learnning
+- Might have a lot of spagetti code hehe. Sorry future self, didn't mean to disappoint.
