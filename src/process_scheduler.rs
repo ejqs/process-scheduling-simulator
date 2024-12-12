@@ -165,17 +165,25 @@ pub fn process_scheduler(
     else if algorithm_num == 1 {
         while finished_jobs_count < total_job_count {
             // Handle Job Arrival, if there are still jobs pending
-            if arrived_jobs_count < total_job_count {
-                //                                       vv prevents crashing when arrival times are misconfigured
-                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
-                    println!(
-                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
-                        jobs[arrived_jobs_count].job_name, cpu_counter
-                    );
-                    queue.push_back(jobs[arrived_jobs_count].clone());
-                    arrived_jobs_count += 1;
+            let mut all_jobs_in_check: bool = false;
+            while all_jobs_in_check != true {
+                if arrived_jobs_count < total_job_count {
+                    // .                                             vv prevents crashing when arrival times are misconfigured
+                    if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                        println!(
+                            "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                            jobs[arrived_jobs_count].job_name, cpu_counter
+                        );
+                        queue.push_back(jobs[arrived_jobs_count].clone());
+                        arrived_jobs_count += 1;
+                    } else {
+                        all_jobs_in_check = true;
+                    }
+                } else {
+                    all_jobs_in_check = true;
                 }
             }
+
             // If CPU idle and queue is not empty && PROCESS JOB
             if cpu_status == CPUStatus::Idle && queue.is_empty().not() {
                 queue
@@ -251,15 +259,22 @@ pub fn process_scheduler(
         println!("Total Job Count: {}", total_job_count);
         while finished_jobs_count < total_job_count {
             // Handle Job Arrival, if there are still jobs pending
-            if arrived_jobs_count < total_job_count {
-                //                                       vv prevents crashing when arrival times are misconfigured
-                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
-                    println!(
-                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
-                        jobs[arrived_jobs_count].job_name, cpu_counter
-                    );
-                    queue.push_back(jobs[arrived_jobs_count].clone());
-                    arrived_jobs_count += 1;
+            let mut all_jobs_in_check: bool = false;
+            while all_jobs_in_check != true {
+                if arrived_jobs_count < total_job_count {
+                    // .                                             vv prevents crashing when arrival times are misconfigured
+                    if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                        println!(
+                            "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                            jobs[arrived_jobs_count].job_name, cpu_counter
+                        );
+                        queue.push_back(jobs[arrived_jobs_count].clone());
+                        arrived_jobs_count += 1;
+                    } else {
+                        all_jobs_in_check = true;
+                    }
+                } else {
+                    all_jobs_in_check = true;
                 }
             }
 
@@ -321,15 +336,22 @@ pub fn process_scheduler(
         println!("Total Job Count: {}", total_job_count);
         while finished_jobs_count < total_job_count {
             // Handle Job Arrival, if there are still jobs pending
-            if arrived_jobs_count < total_job_count {
-                //                                       vv prevents bugs when arrival times are misconfigured
-                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
-                    println!(
-                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
-                        jobs[arrived_jobs_count].job_name, cpu_counter
-                    );
-                    queue.push_back(jobs[arrived_jobs_count].clone());
-                    arrived_jobs_count += 1;
+            let mut all_jobs_in_check: bool = false;
+            while all_jobs_in_check != true {
+                if arrived_jobs_count < total_job_count {
+                    // .                                             vv prevents crashing when arrival times are misconfigured
+                    if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                        println!(
+                            "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                            jobs[arrived_jobs_count].job_name, cpu_counter
+                        );
+                        queue.push_back(jobs[arrived_jobs_count].clone());
+                        arrived_jobs_count += 1;
+                    } else {
+                        all_jobs_in_check = true;
+                    }
+                } else {
+                    all_jobs_in_check = true;
                 }
             }
 
@@ -438,15 +460,22 @@ pub fn process_scheduler(
         println!("Total Job Count: {}", total_job_count);
         while finished_jobs_count < total_job_count {
             // Handle Job Arrival, if there are still jobs pending
-            if arrived_jobs_count < total_job_count {
-                //                                       vv prevents bugs when arrival times are misconfigured
-                if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
-                    println!(
-                        "JOB ARRIVED: {} // CPU_COUNTER: {}",
-                        jobs[arrived_jobs_count].job_name, cpu_counter
-                    );
-                    queue.push_back(jobs[arrived_jobs_count].clone());
-                    arrived_jobs_count += 1;
+            let mut all_jobs_in_check: bool = false;
+            while all_jobs_in_check != true {
+                if arrived_jobs_count < total_job_count {
+                    // .                                             vv prevents crashing when arrival times are misconfigured
+                    if jobs[arrived_jobs_count].arrival_time <= cpu_counter {
+                        println!(
+                            "JOB ARRIVED: {} // CPU_COUNTER: {}",
+                            jobs[arrived_jobs_count].job_name, cpu_counter
+                        );
+                        queue.push_back(jobs[arrived_jobs_count].clone());
+                        arrived_jobs_count += 1;
+                    } else {
+                        all_jobs_in_check = true;
+                    }
+                } else {
+                    all_jobs_in_check = true;
                 }
             }
             just_popped = false;
