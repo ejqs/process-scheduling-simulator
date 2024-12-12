@@ -1,5 +1,5 @@
 use crate::process_scheduler::{job_builder, *};
-use egui::{Color32, RichText};
+use egui::RichText;
 use egui_dropdown::DropDownBox;
 use std::hash::{Hash, Hasher};
 
