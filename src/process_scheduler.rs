@@ -128,7 +128,7 @@ pub fn process_scheduler(
     let mut current_job: Job = jobs[0].clone(); // Initialize to first job
     let mut to_return_jobs: Vec<Job> = jobs.clone();
 
-    //
+    // revise if this is revised src/app.rs:156:163
     let algorithm_num = match algorithm.as_str() {
         "Random" => 0,
         "First Come First Serve (FCFS)" => 1,

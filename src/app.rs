@@ -153,12 +153,26 @@ impl eframe::App for App {
                 // TODO: Allow for User Closing
                 // TODO: Force Close Window on Unsafe Operations
                 if self.viewport_open {
-                    self.spawn_new_window(
-                        ctx,
-                        self.buf.clone(),
-                        self.jobs.clone(),
-                        self.time_quantum.clone(),
-                    );
+                    let algorithm_num = match self.buf.as_str() {
+                        "Random" => 0,
+                        "First Come First Serve (FCFS)" => 1,
+                        "Shortest Job Next (SJN)" => 2,
+                        "Shortest Remaining Time (SRT)" => 3,
+                        "Round Robin" => 4,
+                        _ => -1, // Unknown, program will panic
+                    };
+                    if algorithm_num != -1 {
+                        self.spawn_new_window(
+                            ctx,
+                            self.buf.clone(),
+                            self.jobs.clone(),
+                            self.time_quantum.clone(),
+                        );
+                    } else {
+                        self.viewport_open = false;
+                        self.buf = "First Come First Serve (FCFS)".to_string();
+                        self.viewport_open = true;
+                    }
                 }
             });
 
