@@ -1,4 +1,5 @@
 use crate::process_scheduler::{job_builder, *};
+use egui::{Color32, RichText};
 use egui_dropdown::DropDownBox;
 use std::hash::{Hash, Hasher};
 
@@ -184,12 +185,81 @@ impl eframe::App for App {
                     ui.label("Job Details");
                     ui.label("CPU Cycle");
                     ui.label("Arrival Time");
+                    ui.label("Move Up");
+                    ui.label("Move Down");
                     ui.end_row();
 
-                    for job in &mut self.jobs {
-                        ui.label(format!("Jobs: {}", job.job_name));
-                        ui.add(egui::DragValue::new(&mut job.needed_cpu_cycle).range(1..=u16::MAX));
-                        ui.add(egui::DragValue::new(&mut job.arrival_time).range(0..=u16::MAX));
+                    for i in 0..self.jobs.len() {
+                        let color = {
+                            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                            self.jobs[i].job_name.hash(&mut hasher);
+                            let hash = hasher.finish();
+                            let r = (hash & 0xFF) as u8;
+                            let g = ((hash >> 8) & 0xFF) as u8;
+                            let b = ((hash >> 16) & 0xFF) as u8;
+                            egui::Color32::from_rgb(r, g, b)
+                        };
+
+                        ui.label(
+                            RichText::new(format!("JOB {}", self.jobs[i].job_name))
+                                .background_color(color)
+                                .color(
+                                    if (0.299 * color.r() as f32
+                                        + 0.587 * color.g() as f32
+                                        + 0.114 * color.b() as f32)
+                                        > 128.0
+                                    {
+                                        egui::Color32::BLACK
+                                    } else {
+                                        egui::Color32::WHITE
+                                    },
+                                )
+                                .strong(),
+                        );
+                        ui.add(
+                            egui::DragValue::new(&mut self.jobs[i].needed_cpu_cycle)
+                                .range(1..=u16::MAX),
+                        );
+                        ui.add(
+                            egui::DragValue::new(&mut self.jobs[i].arrival_time)
+                                .range(0..=u16::MAX),
+                        );
+                        // move up [a][b] swap with previous
+                        if ui
+                            .add(egui::Button::new("^").fill(if i == 0 {
+                                egui::Color32::from_rgb(200, 200, 200)
+                            } else {
+                                egui::Color32::from_rgb(100, 149, 237)
+                            }))
+                            .clicked()
+                        {
+                            // Prevent action if job is first
+                            if i != 0 {
+                                let a = self.jobs[i - 1].clone();
+                                let b = self.jobs[i].clone();
+
+                                self.jobs[i] = a;
+                                self.jobs[i - 1] = b;
+                            }
+                        }
+                        // move up [b][a] swap with next
+                        if ui
+                            .add(egui::Button::new("v").fill(if i == self.jobs.len() - 1 {
+                                egui::Color32::from_rgb(200, 200, 200)
+                            } else {
+                                egui::Color32::from_rgb(100, 149, 237)
+                            }))
+                            .clicked()
+                        {
+                            // Prevent action if job is last
+                            if i != self.jobs.len() - 1 {
+                                let a = self.jobs[i + 1].clone();
+                                let b = self.jobs[i].clone();
+
+                                self.jobs[i] = a;
+                                self.jobs[i + 1] = b;
+                            }
+                        }
                         ui.end_row();
                     }
                 });
@@ -367,7 +437,32 @@ fn timeline_builder_screen(
             ui.label("Turn Around");
             ui.end_row();
             for job in &mut returned_jobs {
-                ui.label(format!("Job {}", job.job_name));
+                let color = {
+                    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                    job.job_name.hash(&mut hasher);
+                    let hash = hasher.finish();
+                    let r = (hash & 0xFF) as u8;
+                    let g = ((hash >> 8) & 0xFF) as u8;
+                    let b = ((hash >> 16) & 0xFF) as u8;
+                    egui::Color32::from_rgb(r, g, b)
+                };
+                // ui.label(format!("Job {}", job.job_name));
+                ui.label(
+                    RichText::new(format!("JOB {}", job.job_name))
+                        .background_color(color)
+                        .color(
+                            if (0.299 * color.r() as f32
+                                + 0.587 * color.g() as f32
+                                + 0.114 * color.b() as f32)
+                                > 128.0
+                            {
+                                egui::Color32::BLACK
+                            } else {
+                                egui::Color32::WHITE
+                            },
+                        )
+                        .strong(),
+                );
                 ui.label(format!("{}", job.completion_time));
                 ui.label(format!("{}", job.turnaround_time));
                 total_turnaround_time += job.turnaround_time as f64;
