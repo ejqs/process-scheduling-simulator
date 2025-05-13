@@ -3,6 +3,10 @@
 A lot of ChatGPT/Github Copilot was used for the timeline drawer. \
 Project's main purpose was to throw myself into a task to understand rust.
 
+<img width="952" alt="Screenshot 2025-05-13 at 8 37 32 AM" src="https://github.com/user-attachments/assets/309ba99e-1f16-40ca-8133-fc7123339532" />
+<img width="912" alt="Screenshot 2025-05-13 at 8 37 37 AM" src="https://github.com/user-attachments/assets/6b419327-2aa6-40df-a4dd-d7608a410940" />
+
+
 ### Tested
 
 Works with examples from \
