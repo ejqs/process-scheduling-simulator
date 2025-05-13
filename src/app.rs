@@ -509,8 +509,8 @@ fn github_link(ui: &mut egui::Ui) {
         ui.spacing_mut().item_spacing.x = 0.0;
         ui.label("Github: ");
         ui.hyperlink_to(
-            "earlsab/process-scheduling-simulator",
-            "https://github.com/earlsab/process-scheduling-simulator",
+            "ejqs/process-scheduling-simulator",
+            "https://github.com/ejqs/process-scheduling-simulator",
         );
     });
 }
